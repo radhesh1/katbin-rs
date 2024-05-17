@@ -34,7 +34,7 @@ async fn start() -> anyhow::Result<()> {
     KEY.set(Key::from(key.as_bytes())).unwrap();
 
     // make db connection
-    let mut opt = ConnectOptions::new(db_url);
+    let opt = ConnectOptions::new(db_url);
     // opt.sqlx_logging(env::var("DB_LOG").is_ok());
     let conn = Database::connect(opt)
         .await
@@ -113,10 +113,10 @@ async fn root(
         .render("index.html.tera", &ctx)
         .map_err(|e| {
             tracing::error!("Error rendering template {}", e);
-            return (
+            (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "error rendering template",
-            );
+            )
         })?;
 
     Ok(Html(body))
@@ -128,10 +128,10 @@ async fn edit(
     Path(paste_id): Path<String>,
 ) -> Response {
     // check if a paste exists for the given paste id
-    let split_paste: Vec<_> = paste_id.split(".").collect();
-    let mut extension = "";
+    let split_paste: Vec<_> = paste_id.split('.').collect();
+    let mut _extension = "";
     if split_paste.len() == 2 {
-        extension = split_paste[1];
+        _extension = split_paste[1];
     }
     let paste = Query::get_paste_by_id(&state.conn, split_paste[0])
         .await
@@ -139,8 +139,8 @@ async fn edit(
             DbErr::RecordNotFound(_) => (StatusCode::NOT_FOUND, "Not found"),
             _ => (StatusCode::NOT_FOUND, "Not found"),
         });
-    if paste.is_err() {
-        return paste.unwrap_err().into_response();
+    if let Err(err) = paste {
+        return err.into_response();
     }
     let paste = paste.unwrap();
 
@@ -186,10 +186,10 @@ async fn post_edit(
     let user = current_user.map(|u| u.0);
 
     // if paste_id contains a ".", split on it
-    let split_paste: Vec<_> = paste_id.split(".").collect();
-    let mut extension = "";
+    let split_paste: Vec<_> = paste_id.split('.').collect();
+    let mut _extension = "";
     if split_paste.len() == 2 {
-        extension = split_paste[1];
+        _extension = split_paste[1];
     }
 
     let paste = Mutation::update_paste_content(&state.conn, &form, user, split_paste[0])
@@ -256,7 +256,8 @@ async fn create_paste(
                 }
             },
             None => {
-                return (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong!").into_response()
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong1!")
+                    .into_response()
             }
         }
     }
@@ -277,7 +278,7 @@ async fn show_paste(
     request: Request,
 ) -> Response {
     // if paste_id contains a ".", split on it
-    let split_paste: Vec<_> = paste_id.split(".").collect();
+    let split_paste: Vec<_> = paste_id.split('.').collect();
     let mut extension = "";
     if split_paste.len() == 2 {
         extension = split_paste[1];
@@ -289,8 +290,8 @@ async fn show_paste(
             DbErr::RecordNotFound(_) => (StatusCode::NOT_FOUND, "Not found"),
             _ => (StatusCode::NOT_FOUND, "Not found"),
         });
-    if paste.is_err() {
-        return paste.unwrap_err().into_response();
+    if let Err(err) = paste {
+        return err.into_response();
     }
 
     let paste = paste.unwrap();
@@ -315,13 +316,13 @@ async fn show_paste(
 
     let body = state.templates.render("show.html.tera", &ctx).map_err(|e| {
         tracing::error!("Error rendering template {}", e);
-        return (
+        (
             StatusCode::INTERNAL_SERVER_ERROR,
             "error rendering template",
-        );
+        )
     });
-    if body.is_err() {
-        return body.unwrap_err().into_response();
+    if let Err(err) = body {
+        return err.into_response();
     }
 
     Html(body.unwrap()).into_response()
@@ -374,10 +375,10 @@ async fn login_post(
                             "error rendering template",
                         )
                     });
-                if body_res.is_err() {
-                    return body_res.unwrap_err().into_response();
+                if let Err(err) = body_res {
+                    return err.into_response();
                 }
-                return Html(body_res.unwrap()).into_response();
+                Html(body_res.unwrap()).into_response()
             }
             _ => (StatusCode::INTERNAL_SERVER_ERROR, "something went wrong").into_response(),
         }
@@ -413,7 +414,7 @@ async fn register_post(
     let form = form.0;
     let user_res = Mutation::register(&state.conn, &form).await;
 
-    if let Some(_) = current_user {
+    if current_user.is_some() {
         return Redirect::to("/").into_response();
     }
 
@@ -439,10 +440,10 @@ async fn register_post(
                             "error rendering template",
                         )
                     });
-                if body_res.is_err() {
-                    return body_res.unwrap_err().into_response();
+                if let Err(err) = body_res {
+                    return err.into_response();
                 }
-                return Html(body_res.unwrap()).into_response();
+                Html(body_res.unwrap()).into_response()
             }
             DbErr::Custom(custom) => {
                 let mut ctx = tera::Context::new();
@@ -464,14 +465,14 @@ async fn register_post(
                             "error rendering template",
                         )
                     });
-                if body_res.is_err() {
-                    return body_res.unwrap_err().into_response();
+                if let Err(err) = body_res {
+                    return err.into_response();
                 }
-                return Html(body_res.unwrap()).into_response();
+                Html(body_res.unwrap()).into_response()
             }
             e => {
                 tracing::error!("Something went wrong: {}", e);
-                return (StatusCode::INTERNAL_SERVER_ERROR, "something went wrong").into_response();
+                (StatusCode::INTERNAL_SERVER_ERROR, "something went wrong").into_response()
             }
         }
     } else {

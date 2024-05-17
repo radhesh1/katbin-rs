@@ -2,6 +2,8 @@ FROM rust:slim-buster AS rust
 WORKDIR /usr/src/katbin
 COPY . .
 RUN cargo install --path .
+# change this according to your migration settings
+RUN cargo run --manifest-path migration/Cargo.toml 
 RUN cp target/release/katbin ./katbin
 
 # build tailwind

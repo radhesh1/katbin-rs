@@ -26,6 +26,7 @@ services:
   #   environment:
   #     DATABASE_URL: postgres://postgres:postgres@postgres:5432/katbin
   #     PORT: 3000
+  #     SECRET_KEY: <Some_secret_key>
 
 volumes:
   pg_data:

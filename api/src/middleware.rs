@@ -32,6 +32,5 @@ pub async fn current_user_middleware(
         }
     }
 
-    let response = next.run(request).await;
-    response
+    next.run(request).await
 }

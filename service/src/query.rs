@@ -33,7 +33,7 @@ impl Query {
 
         match user {
             Some(u) => Ok(u),
-            None => Err(DbErr::RecordNotFound(String::from("User not found")).into()),
+            None => Err(DbErr::RecordNotFound(String::from("User not found"))),
         }
     }
 }
