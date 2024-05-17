@@ -23,10 +23,13 @@ services:
   #   restart: always
   #   ports:
   #     - "3000:3000"
+  #   env_file:
+  #     - .env
+  # # or
   #   environment:
   #     DATABASE_URL: postgres://postgres:postgres@postgres:5432/katbin
   #     PORT: 3000
-  #     SECRET_KEY: <Some_secret_key>
+  #     SECRET_KEY: <Some_secret_key> # generate using `head -c64 /dev/urandom | base64`
 
 volumes:
   pg_data:
